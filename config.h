@@ -1,12 +1,15 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <stdbool.h>
+
 
 // Configuration
 //
 typedef struct config {
   // input
   char *input_filename;
+  bool read_stdin;
   // morse
   int normal_wpm;
   int farnsworth_wpm;

@@ -14,11 +14,13 @@ config_t *parseConfig(int argc, char *argv[]) {
   memset(config, 0, sizeof (config_t));
   bool last_arg = false;
   bool farnsworth_informed = false;
+  bool inputfile_was_informed = false;
 
   for (int i = 1; i < argc; ++i) {
     last_arg = i == argc - 1;
     if (!last_arg && (!strcmp("-i", argv[i]) || !strcmp("--input", argv[i]))) {
       config->input_filename = argv[++i];
+      inputfile_was_informed = true;
     } else if (!last_arg && (!strcmp("-s", argv[i]) || !strcmp("--speed", argv[i]))) {
       errno = 0;
       char *end;
@@ -100,6 +102,8 @@ config_t *parseConfig(int argc, char *argv[]) {
   // morse code. Further details: https://morsecode.world/international/timing.html
   config->normal_unit_ms = 60000. / (50 * config->normal_wpm);
   config->farnsworth_unit_ms = 60000. / (50 * config->farnsworth_wpm);
+
+  config->read_stdin = !inputfile_was_informed;
 
   printConfig(config);
 
