@@ -29,10 +29,9 @@ int main(int argc, char *argv[]) {
   audioFileName = createTempAudioFile();
   videoFileName = createTempVideoFile();
 
-  printTokens(token_bag);
+  //printTokens(token_bag);
 
   free(config);
 
   return 0;
 }
-

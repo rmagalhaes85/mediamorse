@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,6 +10,21 @@
 #include "util.h"
 
 static void createTokenBag(token_bag_t **token_bag);
+
+// token bag
+static void tokenBagFree(token_bag_t *token_bag);
+static void tokenBagAppendToken(token_bag_t *token_bag, const char *token_text);
+static int tokenBagTotalDurationMs(const token_bag_t *token_bag);
+static void tokenBagPrint(token_bag_t *token_bag);
+
+// token
+static token_t *tokenCreate(const char *text);
+static void tokenFree(token_t *token);
+
+// glyph
+static void glyphFree(glyph_t *glyph);
+static glyph_t *glyphsCreate(const char *text, token_type_t type);
+
 
 token_bag_t *parseInput(const config_t *config) {
   int letter_count = 0;
@@ -49,7 +65,7 @@ getLine:
 
       *buffer_ix = '\0';
 
-      appendToken(token_bag, buffer);
+      tokenBagAppendToken(token_bag, buffer);
     }
   }
 
@@ -58,50 +74,91 @@ getLine:
 
 static void createTokenBag(token_bag_t **token_bag) {
   *token_bag = (token_bag_t *) fmalloc(sizeof (token_bag_t));
-  (*token_bag)->tokens = (token_t **) fmalloc(sizeof (token_t));
-  (*token_bag)->token_count = 0;
-  (*token_bag)->tokens[0] = NULL;
+  (*token_bag)->token_head = NULL;
 }
 
-void freeTokenBag(token_bag_t *token_bag) {
-
+static void tokenBagFree(token_bag_t *token_bag) {
+  // for each token
+  //   free each glyph
+  //   free token
+  // free token bag
 }
 
-void appendToken(token_bag_t *token_bag, const char *token_text) {
-  token_t *token;
-  int i;
-
-  if (!strlen(token_text)) return;
-
-  i = token_bag->token_count;
-
-  token_bag->token_count++;
-  token_bag->tokens = frealloc(token_bag->tokens,
-      sizeof(token_t *) * token_bag->token_count);
-
-  token = (token_t *) fmalloc(sizeof(token_t));
-  token->text = strdup(token_text);
-  // TODO criar glyphs
-  //
-  // se o primeiro caracter for '/' e len > 1, trata-se de um prosign
-  //
-  //   para cada caracter a partir do segundo
-  //     obter a representacao morse e concatenar
-  //   gerar glyph contendo a representacao morse concatenada
-  //     obter a duracao dos sons
-  //     obter d duracao do traço farnsworth
-  //   gerar glyph e defini-lo como o único glyph do token em questao
-  //
-  // do contrario (primeiro caracter nao é '/' ou len == 1)
-  //   para cada caracter a partir do segundo
-  //     obter a representacao morse
-  //     obter a duracao dos sons
-  //     obter a duracao do traço farnsworth
-  //     gerar glyph e adiciona-lo a lista de glyphs do token
-
-  token_bag->tokens[i] = token;
+static void tokenBagAppendToken(token_bag_t *token_bag, const char *token_text) {
+  token_t *token = tokenCreate(token_text);
+  if (token_bag->token_head == NULL) {
+    token_bag->token_head = token;
+    return;
+  }
+  token_t *temp = token_bag->token_head;
+  while (temp->next != NULL) {
+    temp = temp->next;
+  }
+  temp->next = token;
 }
 
-void printTokens(token_bag_t *token_bag) {
-
+static int tokenBagTotalDurationMs(const token_bag_t *token_bag) {
+  fprintf(stderr, "tokenBagTotalDurantionMs: not implemented\n");
+  exit(1);
 }
+
+static void tokenBagPrint(token_bag_t *token_bag) {
+  printf("tokenBagPrint: to be implemented\n");
+}
+
+static token_t *tokenCreate(const char *text) {
+  int len = strlen(text);
+  token_t *token = (token_t *) fmalloc(sizeof (token_t));
+  token->text = strdup(text);
+  token->type = (len > 1 && text[0] == '/') ? prosign : word;
+  token->glyph_head = glyphsCreate(text, token->type);
+  token->next = NULL;
+  return token;
+}
+
+static void glyphFillChar(glyph_t *glyph, const char c) {
+  // here we expect that the buffer will be allocated by us
+  assert(glyph->text == NULL);
+  size_t bufsz = sizeof(char) * 2;
+  glyph->text = (char *) fmalloc(bufsz);
+  memset(glyph->text, '\0', bufsz);
+  int written = snprintf(glyph->text, bufsz, "%c", c);
+  assert(written == bufsz);
+}
+
+static glyph_t *glyphsCreate(const char *text, token_type_t type) {
+  int len = strlen(text);
+  const char *c;
+  glyph_t *head = NULL;
+
+  if (len == 0) {
+    return head;
+  }
+
+  c = text;
+  head = (glyph_t *) fmalloc(sizeof (glyph_t));
+
+  if (type == prosign) {
+    assert(len > 1 && text[0] == '/');
+    // the initial '/' in prosign tokens are ignored when building the glyph:
+    c++;
+    head->text = strdup(c);
+    // TODO: compute glyph durations
+    return head;
+  } else {
+    glyphFillChar(head, *c);
+    c++;
+    glyph_t *temp = head;
+
+    while (*c != '\0') {
+      temp->next = (glyph_t *) fmalloc(sizeof (glyph_t));
+      temp->next->next = NULL;
+      glyphFillChar(temp->next, *c);
+      // TODO compute glyph durations
+      temp = temp->next;
+      c++;
+    }
+  }
+  return head;
+}
+
