@@ -1,9 +1,10 @@
 OBJS=config.o main.o util.o morse.o parser.o input.o audio.o
 EXE=mediamorse
 CFLAGS=-g
+LDFLAGS=-lm
 
 all: $(OBJS)
-	gcc $(OBJS) $(CFLAGS) -o $(EXE)
+	$(CC) $(OBJS) $(CFLAGS) -o $(EXE) $(LDFLAGS)
 
 clean:
 	$(RM) $(OBJS)

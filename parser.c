@@ -71,6 +71,8 @@ getLine:
   }
 
   closeInput(config, in);
+
+  return token_bag;
 }
 
 static void createTokenBag(token_bag_t **token_bag) {

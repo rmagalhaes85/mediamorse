@@ -4,7 +4,7 @@
 #include "config.h"
 #include "parser.h"
 
-void writeAudio(token_bag_t token_bag);
-
+void writeAudio(const config_t *config, const token_bag_t *token_bag,
+    const char *audio_filename);
 
 #endif
