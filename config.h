@@ -19,6 +19,7 @@ typedef struct config {
   int freq;
   bool noise;
   int bandwidth;
+  int bitrate;
   // video
   char *bgcolor;
   char *fgcolor;

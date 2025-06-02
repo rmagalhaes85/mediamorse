@@ -15,6 +15,8 @@ config_t *parseConfig(int argc, char *argv[]) {
   bool last_arg = false;
   bool farnsworth_informed = false;
   bool inputfile_was_informed = false;
+  int bitrate = 44100;
+  int freq = 500;
 
   for (int i = 1; i < argc; ++i) {
     last_arg = i == argc - 1;
@@ -41,13 +43,21 @@ config_t *parseConfig(int argc, char *argv[]) {
     } else if (!last_arg && (!strcmp("-f", argv[i]) || !strcmp("--frequency", argv[i]))) {
       errno = 0;
       char *end;
-      config->freq = strtol(argv[++i], &end, 10);
+      freq = strtol(argv[++i], &end, 10);
       if (errno != 0 || argv[i] == end) {
         fprintf(stderr, "Invalid frequency\n");
         exit(1);
       }
     } else if (!strcmp("-n", argv[i]) || !strcmp("--noise", argv[i])) {
       config->noise = true;
+    } else if (!last_arg && (!strcmp("-ar", argv[i]) || !strcmp("--bitrate", argv[i]))) {
+      errno = 0;
+      char *end;
+      bitrate = strtol(argv[++i], &end, 10);
+      if (errno != 0 || argv[i] == end) {
+        fprintf(stderr, "Invalid bitrate\n");
+        exit(1);
+      }
     } else if (!last_arg && (!strcmp("-nb", argv[i]) || !strcmp("--noise-bandwidth", argv[i]))) {
       errno = 0;
       char *end;
@@ -104,6 +114,9 @@ config_t *parseConfig(int argc, char *argv[]) {
   config->farnsworth_unit_ms = 60000. / (50 * config->farnsworth_wpm);
 
   config->read_stdin = !inputfile_was_informed;
+
+  config->bitrate = bitrate;
+  config->freq = freq;
 
   printConfig(config);
 

@@ -1,4 +1,4 @@
-OBJS=config.o main.o util.o morse.o parser.o input.o
+OBJS=config.o main.o util.o morse.o parser.o input.o audio.o
 EXE=mediamorse
 CFLAGS=-g
 
@@ -17,3 +17,4 @@ util.o: util.c
 morse.o: morse.c morse.h
 parser.o: parser.c config.h morse.h parser.h input.h
 input.o: input.c config.h input.h
+audio.o: audio.c audio.h config.h
