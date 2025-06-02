@@ -7,6 +7,7 @@
 #include "config.h"
 #include "input.h"
 #include "parser.h"
+#include "morse.h"
 #include "util.h"
 
 static void createTokenBag(token_bag_t **token_bag);
@@ -123,6 +124,7 @@ static void glyphFillChar(glyph_t *glyph, const char c) {
   glyph->text = (char *) fmalloc(bufsz);
   memset(glyph->text, '\0', bufsz);
   int written = snprintf(glyph->text, bufsz, "%c", c);
+  glyph->morse = getMorse(glyph->text);
   assert(written == 1);
 }
 

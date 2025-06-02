@@ -12,6 +12,7 @@ typedef struct glyph_s {
   int sound_duration_ms;
   int total_duration_ms;
   char *text;
+  char *morse;
   struct glyph_s *next;
 } glyph_t;
 

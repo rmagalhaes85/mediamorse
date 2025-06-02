@@ -1,4 +1,4 @@
-OBJS=config.o main.o util.o parser.o input.o
+OBJS=config.o main.o util.o morse.o parser.o input.o
 EXE=mediamorse
 CFLAGS=-g
 
@@ -11,8 +11,9 @@ clean:
 ctags:
 	ctags -R *
 
-config.o: config.c util.h
+config.o: config.c util.h config.h
 main.o: main.c config.h util.h
 util.o: util.c
-parser.o: parser.c config.h
-input.o: input.c config.h
+morse.o: morse.c morse.h
+parser.o: parser.c config.h morse.h parser.h input.h
+input.o: input.c config.h input.h
