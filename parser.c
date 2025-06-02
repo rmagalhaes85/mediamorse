@@ -123,7 +123,7 @@ static void glyphFillChar(glyph_t *glyph, const char c) {
   glyph->text = (char *) fmalloc(bufsz);
   memset(glyph->text, '\0', bufsz);
   int written = snprintf(glyph->text, bufsz, "%c", c);
-  assert(written == bufsz);
+  assert(written == 1);
 }
 
 static glyph_t *glyphsCreate(const char *text, token_type_t type) {
@@ -137,6 +137,7 @@ static glyph_t *glyphsCreate(const char *text, token_type_t type) {
 
   c = text;
   head = (glyph_t *) fmalloc(sizeof (glyph_t));
+  head->next = NULL;
 
   if (type == prosign) {
     assert(len > 1 && text[0] == '/');
