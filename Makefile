@@ -13,9 +13,9 @@ ctags:
 	ctags -R *
 
 config.o: config.c util.h config.h
-main.o: main.c config.h util.h
+main.o: main.c config.h util.h token.h
 util.o: util.c
-morse.o: morse.c morse.h
-parser.o: parser.c config.h morse.h parser.h input.h
+morse.o: morse.c morse.h token.h
+parser.o: parser.c config.h morse.h parser.h input.h token.h
 input.o: input.c config.h input.h
-audio.o: audio.c audio.h config.h
+audio.o: audio.c audio.h config.h token.h

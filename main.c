@@ -11,6 +11,7 @@
 #include "config.h"
 #include "util.h"
 #include "parser.h"
+#include "token.h"
 #include "audio.h"
 
 const char *createTempAudioFile() {

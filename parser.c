@@ -7,6 +7,7 @@
 #include "config.h"
 #include "input.h"
 #include "parser.h"
+#include "token.h"
 #include "morse.h"
 #include "util.h"
 

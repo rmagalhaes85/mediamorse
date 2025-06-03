@@ -3,6 +3,7 @@
 
 #include "config.h"
 #include "parser.h"
+#include "token.h"
 
 void writeAudio(const config_t *config, const token_bag_t *token_bag,
     const char *audio_filename);
