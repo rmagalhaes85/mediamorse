@@ -10,9 +10,9 @@
 void writeSound(float complex *osc, FILE *pipeout, const config_t *config,
     int duration_ms) {
   float output = 0.;
-  int nb_samples = (duration_ms / 1000) * config->bitrate;
+  int nb_samples = (duration_ms / 1000.) * config->bitrate;
 
-  for (int i; i < nb_samples; ++i) {
+  for (int i = 0; i < nb_samples; ++i) {
     *osc *= cexpf(config->freq * (2.0 * M_PI / config->bitrate) * I);
     // TODO make audio volume configurable
     float output = crealf(*osc) * 0.5;
@@ -27,10 +27,10 @@ void writeSound(float complex *osc, FILE *pipeout, const config_t *config,
 void writeSilence(float complex *osc, FILE *pipeout, const config_t *config,
     int duration_ms) {
   float output = 0.;
-  int nb_samples = (duration_ms / 1000) * config->bitrate;
+  int nb_samples = (duration_ms / 1000.) * config->bitrate;
 
   *osc = I;
-  for (int i; i < nb_samples; ++i) {
+  for (int i = 0; i < nb_samples; ++i) {
     size_t written = fwrite(&output, sizeof(output), 1, pipeout);
     if (written < 1) {
       fprintf(stderr, "Error send audio bytes to ffmpeg\n");
@@ -43,7 +43,7 @@ void writeSilence(float complex *osc, FILE *pipeout, const config_t *config,
 void writeAudio(const config_t *config, const token_bag_t *token_bag,
     const char *audio_filename) {
   FILE *pipeout = NULL;
-  const char cmd_fmt[] = "ffmpeg -y -f s16le -ar %d -ac 1 -i - %s";
+  const char cmd_fmt[] = "ffmpeg -y -f f32le -ar %d -ac 1 -i - %s";
   int cmd_bufsz;
   char *ffmpeg_cmd;
   // audio
@@ -93,7 +93,7 @@ void writeAudio(const config_t *config, const token_bag_t *token_bag,
       } else {
         // there are still characters in the current word. Output the inter-character
         // spacer
-        writeSilence(&osc, pipeout, config, config->normal_unit_ms * 3);
+        writeSilence(&osc, pipeout, config, config->farnsworth_unit_ms * 3);
       }
     }
 
