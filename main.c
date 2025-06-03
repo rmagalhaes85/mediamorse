@@ -13,26 +13,28 @@
 #include "parser.h"
 #include "token.h"
 #include "audio.h"
+#include "video.h"
 
 const char *createTempAudioFile() {
   return "/tmp/morse.mp3";
 }
 
 const char *createTempVideoFile() {
-
+  return "/tmp/morse.mp4";
 }
 
 int main(int argc, char *argv[]) {
-  const char *audio_filename, *videoFileName;
+  const char *audio_filename, *video_filename;
 
   config_t *config = parseConfig(argc, argv);
   token_bag_t *token_bag = parseInput(config);
 
   audio_filename = createTempAudioFile();
-  //videoFileName = createTempVideoFile();
+  video_filename = createTempVideoFile();
 
   writeAudio(config, token_bag, audio_filename);
   //printTokens(token_bag);
+  writeVideo(config, token_bag, video_filename);
 
   free(config);
 

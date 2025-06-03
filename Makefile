@@ -1,4 +1,4 @@
-OBJS=config.o main.o util.o morse.o parser.o input.o audio.o
+OBJS=config.o main.o util.o morse.o parser.o input.o audio.o video.o
 EXE=mediamorse
 CFLAGS=-g
 LDFLAGS=-lm
@@ -19,3 +19,4 @@ morse.o: morse.c morse.h token.h
 parser.o: parser.c config.h morse.h parser.h input.h token.h
 input.o: input.c config.h input.h
 audio.o: audio.c audio.h config.h token.h
+video.o: video.c video.h config.h token.h
