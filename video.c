@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "parser.h"
 #include "config.h"
@@ -104,11 +105,16 @@ static void getFrame(const config_t *config, const char *glyph_text,
 }
 
 static void writeGlyphText(const char *glyph_text, FILE *pipeout,
-    const config_t *config, int duration_ms) {
+    const config_t *config, int duration_ms, float *frames_mismatch) {
   unsigned char *framebuffer = NULL;
-  // TODO insert corrections to compensate for rouding errors below. These are introducing
-  // mistmatches between the display of letters and their corresponding morse code
-  int nb_frames = (duration_ms / 1000.) * config->framerate;
+  float nb_frames_ideal = (duration_ms / 1000.) * config->framerate;
+  float int_mismatch = 0.;
+  int nb_frames_real = (int) nb_frames_ideal;
+  *frames_mismatch += nb_frames_real - nb_frames_ideal;
+  modff(*frames_mismatch, &int_mismatch);
+  int frames_adj = (abs(int_mismatch) < nb_frames_real) ? -int_mismatch : -nb_frames_real + 1;
+  nb_frames_real += frames_adj;
+  *frames_mismatch += frames_adj;
   // TODO this is being computed in other parts of this module. We could compute this only
   // once
   int bufsz = config->video_height * config->video_width
@@ -120,7 +126,7 @@ static void writeGlyphText(const char *glyph_text, FILE *pipeout,
     exit(1);
   }
 
-  for (int i = 0; i < nb_frames; ++i) {
+  for (int i = 0; i < nb_frames_real; ++i) {
     size_t written = fwrite(framebuffer, bufsz, 1, pipeout);
     if (written < 1) {
       fprintf(stderr, "Error send video frames to ffmpeg\n");
@@ -146,6 +152,7 @@ void writeVideo(const config_t *config, const token_bag_t *token_bag,
   // tokens/glyphs
   token_t *token = NULL;
   glyph_t *glyph = NULL;
+  float frames_mismatch = 0.;
 
   cmd_bufsz = snprintf(NULL, 0, cmd_fmt, config->framerate, video_filename);
   cmd_bufsz++;
@@ -176,7 +183,8 @@ void writeVideo(const config_t *config, const token_bag_t *token_bag,
       }
       //duration_units += morse_len - 1; // spacers between each dih and dah
 
-      writeGlyphText(glyph->text, pipeout, config, duration_units * config->normal_unit_ms);
+      writeGlyphText(glyph->text, pipeout, config,
+          duration_units * config->normal_unit_ms, &frames_mismatch);
 
       glyph = glyph->next;
 
@@ -190,7 +198,8 @@ void writeVideo(const config_t *config, const token_bag_t *token_bag,
         farns_units = 3;
       }
 
-      writeGlyphText(" ", pipeout, config, config->farnsworth_unit_ms * farns_units);
+      writeGlyphText(" ", pipeout, config, config->farnsworth_unit_ms * farns_units,
+          &frames_mismatch);
     }
 
     token = token->next;
