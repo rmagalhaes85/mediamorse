@@ -26,6 +26,8 @@ typedef struct config {
   char *hlcolor;
   bool showtitle;
   int title_duration_ms;
+  int video_width;
+  int video_height;
 } config_t;
 
 config_t *parseConfig(int argc, char *argv[]);

@@ -17,6 +17,8 @@ config_t *parseConfig(int argc, char *argv[]) {
   bool inputfile_was_informed = false;
   int bitrate = 44100;
   int freq = 500;
+  int video_width = 640;
+  int video_height = 480;
 
   for (int i = 1; i < argc; ++i) {
     last_arg = i == argc - 1;
@@ -64,6 +66,22 @@ config_t *parseConfig(int argc, char *argv[]) {
       config->bandwidth = strtol(argv[++i], &end, 10);
       if (errno != 0 || argv[i] == end) {
         fprintf(stderr, "Invalid bandwidth\n");
+        exit(1);
+      }
+    } else if (!last_arg && (!strcmp("-vw", argv[i]) || !strcmp("--video-width", argv[i]))) {
+      errno = 0;
+      char *end;
+      video_width = strtol(argv[++i], &end, 10);
+      if (errno != 0 || argv[i] == end) {
+        fprintf(stderr, "Invalid video width\n");
+        exit(1);
+      }
+    } else if (!last_arg && (!strcmp("-vh", argv[i]) || !strcmp("--video-height", argv[i]))) {
+      errno = 0;
+      char *end;
+      video_height = strtol(argv[++i], &end, 10);
+      if (errno != 0 || argv[i] == end) {
+        fprintf(stderr, "Invalid video height\n");
         exit(1);
       }
     } else if (!last_arg && (!strcmp("-bg", argv[i]) || !strcmp("--bgcolor", argv[i]))) {
@@ -117,6 +135,9 @@ config_t *parseConfig(int argc, char *argv[]) {
 
   config->bitrate = bitrate;
   config->freq = freq;
+
+  config->video_width = video_width;
+  config->video_height = video_height;
 
   printConfig(config);
 
