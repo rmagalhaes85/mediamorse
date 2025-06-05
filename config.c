@@ -19,6 +19,7 @@ config_t *parseConfig(int argc, char *argv[]) {
   int freq = 500;
   int video_width = 640;
   int video_height = 480;
+  int framerate = 25;
 
   for (int i = 1; i < argc; ++i) {
     last_arg = i == argc - 1;
@@ -58,6 +59,14 @@ config_t *parseConfig(int argc, char *argv[]) {
       bitrate = strtol(argv[++i], &end, 10);
       if (errno != 0 || argv[i] == end) {
         fprintf(stderr, "Invalid bitrate\n");
+        exit(1);
+      }
+    } else if (!last_arg && (!strcmp("-r", argv[i]) || !strcmp("--framerate", argv[i]))) {
+      errno = 0;
+      char *end;
+      framerate = strtol(argv[++i], &end, 10);
+      if (errno != 0 || argv[i] == end) {
+        fprintf(stderr, "Invalid framerate\n");
         exit(1);
       }
     } else if (!last_arg && (!strcmp("-nb", argv[i]) || !strcmp("--noise-bandwidth", argv[i]))) {
@@ -138,6 +147,7 @@ config_t *parseConfig(int argc, char *argv[]) {
 
   config->video_width = video_width;
   config->video_height = video_height;
+  config->framerate = framerate;
 
   printConfig(config);
 

@@ -28,6 +28,7 @@ typedef struct config {
   int title_duration_ms;
   int video_width;
   int video_height;
+  int framerate;
 } config_t;
 
 config_t *parseConfig(int argc, char *argv[]);

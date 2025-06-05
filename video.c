@@ -19,7 +19,7 @@ static frame_data_t *frames_cache = NULL;
 
 static void getFrame(const config_t *config, const char *glyph_text,
     unsigned char **frame_buffer) {
-  frame_data_t *tmp, *new_frame;
+  frame_data_t *tmp, *new_frame, *last_frame = NULL;
   int frame_size;
 
   tmp = frames_cache;
@@ -28,6 +28,7 @@ static void getFrame(const config_t *config, const char *glyph_text,
       *frame_buffer = tmp->frame_buffer;
       return;
     }
+    last_frame = tmp;
     tmp = tmp->next;
   }
 
@@ -57,14 +58,14 @@ static void getFrame(const config_t *config, const char *glyph_text,
   cairo_set_font_size(cr, config->video_height * 0.75); // Scale font to 75% of height
 
   cairo_text_extents_t extents;
-  cairo_text_extents(cr, "A", &extents);
+  cairo_text_extents(cr, glyph_text, &extents);
 
   double x = (config->video_width - extents.width) / 2 - extents.x_bearing;
   double y = (config->video_height - extents.height) / 2 - extents.y_bearing;
 
   cairo_move_to(cr, x, y);
   cairo_set_source_rgb(cr, 1, 1, 1); // White
-  cairo_show_text(cr, "A");
+  cairo_show_text(cr, glyph_text);
 
   cairo_surface_flush(surface);
 
@@ -92,6 +93,40 @@ static void getFrame(const config_t *config, const char *glyph_text,
   new_frame->glyph_text = strdup(glyph_text);
   new_frame->next = NULL;
   new_frame->frame_buffer = rgb_data;
+
+  if (last_frame == NULL) {
+    last_frame = new_frame;
+  } else {
+    last_frame->next = new_frame;
+  }
+
+  *frame_buffer = new_frame->frame_buffer;
+}
+
+static void writeGlyphText(const char *glyph_text, FILE *pipeout,
+    const config_t *config, int duration_ms) {
+  unsigned char *framebuffer = NULL;
+  // TODO insert corrections to compensate for rouding errors below. These are introducing
+  // mistmatches between the display of letters and their corresponding morse code
+  int nb_frames = (duration_ms / 1000.) * config->framerate;
+  // TODO this is being computed in other parts of this module. We could compute this only
+  // once
+  int bufsz = config->video_height * config->video_width
+    * sizeof(unsigned char) * 3;
+
+  getFrame(config, glyph_text, &framebuffer);
+  if (framebuffer == NULL) {
+    fprintf(stderr, "Could not obtain the frame data for glyph text (%s)\n", glyph_text);
+    exit(1);
+  }
+
+  for (int i = 0; i < nb_frames; ++i) {
+    size_t written = fwrite(framebuffer, bufsz, 1, pipeout);
+    if (written < 1) {
+      fprintf(stderr, "Error send video frames to ffmpeg\n");
+      exit(1);
+    }
+  }
 }
 
 static void uninitializeVideo() {
@@ -101,4 +136,65 @@ static void uninitializeVideo() {
 
 void writeVideo(const config_t *config, const token_bag_t *token_bag,
     const char *video_filename) {
+
+  FILE *pipeout = NULL;
+  const char cmd_fmt[] = "ffmpeg -y -f rawvideo -pixel_format rgb24 "
+        "-video_size 640x480 -r %d "
+        "-i pipe: -c:v libx264 -pix_fmt yuv420p %s";
+  int cmd_bufsz;
+  char *ffmpeg_cmd;
+  // tokens/glyphs
+  token_t *token = NULL;
+  glyph_t *glyph = NULL;
+
+  cmd_bufsz = snprintf(NULL, 0, cmd_fmt, config->framerate, video_filename);
+  cmd_bufsz++;
+  ffmpeg_cmd = (char *) fmalloc(cmd_bufsz + 1);
+  snprintf(ffmpeg_cmd, cmd_bufsz, cmd_fmt, config->framerate, video_filename);
+
+  pipeout = popen(ffmpeg_cmd, "w");
+  if (pipeout == NULL) {
+    fprintf(stderr, "Could not open video file\n");
+    exit(1);
+  }
+
+  token = token_bag->token_head;
+
+  while (token != NULL) {
+    glyph = token->glyph_head;
+
+    while (glyph != NULL) {
+      const char *morse = glyph->morse;
+      int morse_len = strlen(morse);
+      int duration_units = 0;
+      int farns_units = 0;
+
+      for (int i = 0; i < morse_len; ++i) {
+        duration_units += morse[i] == '.' ? 1 : 3;
+        int is_last = i == morse_len - 1;
+        if (!is_last) duration_units += 1;
+      }
+      //duration_units += morse_len - 1; // spacers between each dih and dah
+
+      writeGlyphText(glyph->text, pipeout, config, duration_units * config->normal_unit_ms);
+
+      glyph = glyph->next;
+
+      if (glyph == NULL) {
+        // the word is finished. Output inter-word spacer. (Farnsworth will equal normal
+        // durations when no farnsworth duration is specified
+        farns_units = 7;
+      } else {
+        // there are still characters in the current word. Output the inter-character
+        // spacer
+        farns_units = 3;
+      }
+
+      writeGlyphText(" ", pipeout, config, config->farnsworth_unit_ms * farns_units);
+    }
+
+    token = token->next;
+  }
+
+  fclose(pipeout);
 }
