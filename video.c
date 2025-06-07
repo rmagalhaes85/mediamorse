@@ -144,7 +144,7 @@ void writeVideo(const config_t *config, const token_bag_t *token_bag,
     const char *video_filename) {
 
   FILE *pipeout = NULL;
-  const char cmd_fmt[] = "ffmpeg -y -f rawvideo -pixel_format rgb24 "
+  const char cmd_fmt[] = "ffmpeg -v 0 -y -f rawvideo -pixel_format rgb24 "
         "-video_size 640x480 -r %d "
         "-i pipe: -c:v libx264 -pix_fmt yuv420p -f mp4 %s";
   int cmd_bufsz;
@@ -154,11 +154,17 @@ void writeVideo(const config_t *config, const token_bag_t *token_bag,
   glyph_t *glyph = NULL;
   float frames_mismatch = 0.;
 
+  if (!is_valid_filename(video_filename)) {
+    fprintf(stderr, "Invalid video file name\n");
+    exit(1);
+  }
+
   cmd_bufsz = snprintf(NULL, 0, cmd_fmt, config->framerate, video_filename);
   cmd_bufsz++;
   ffmpeg_cmd = (char *) fmalloc(cmd_bufsz + 1);
   snprintf(ffmpeg_cmd, cmd_bufsz, cmd_fmt, config->framerate, video_filename);
 
+  // TODO consider changing to `run_and_capture`, in `util.h`
   pipeout = popen(ffmpeg_cmd, "w");
   if (pipeout == NULL) {
     fprintf(stderr, "Could not open video file\n");

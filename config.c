@@ -23,11 +23,15 @@ config_t *parseConfig(int argc, char *argv[]) {
   config->video_height = 480;
   config->framerate = 25;
 
+  config->output_filename = NULL;
+
   for (int i = 1; i < argc; ++i) {
     last_arg = i == argc - 1;
     if (!last_arg && (!strcmp("-i", argv[i]) || !strcmp("--input", argv[i]))) {
       config->input_filename = argv[++i];
       inputfile_was_informed = true;
+    } else if (!last_arg && (!strcmp("-o", argv[i]) || !strcmp("--output", argv[i]))) {
+      config->output_filename = argv[++i];
     } else if (!last_arg && (!strcmp("-s", argv[i]) || !strcmp("--speed", argv[i]))) {
       errno = 0;
       char *end;
@@ -143,6 +147,18 @@ config_t *parseConfig(int argc, char *argv[]) {
   config->farnsworth_unit_ms = 60000. / (50 * config->farnsworth_wpm);
 
   config->read_stdin = !inputfile_was_informed;
+  if (inputfile_was_informed && !is_valid_filename(config->input_filename)) {
+    fprintf(stderr, "Invalid input file name\n");
+    exit(1);
+  }
+
+  if (config->output_filename == NULL) {
+    fprintf(stderr, "Output file name wasn't informed\n");
+    exit(1);
+  } else if (!is_valid_filename(config->output_filename)) {
+    fprintf(stderr, "Invalid output file name\n");
+    exit(1);
+  }
 
   return config;
 }

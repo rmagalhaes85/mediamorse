@@ -43,7 +43,7 @@ void writeSilence(float complex *osc, FILE *pipeout, const config_t *config,
 void writeAudio(const config_t *config, const token_bag_t *token_bag,
     const char *audio_filename) {
   FILE *pipeout = NULL;
-  const char cmd_fmt[] = "ffmpeg -y -f f32le -ar %d -ac 1 -i - -f mp3 %s";
+  const char cmd_fmt[] = "ffmpeg -v 0 -y -f f32le -ar %d -ac 1 -i - -f mp3 %s";
   int cmd_bufsz;
   char *ffmpeg_cmd;
   // audio
@@ -57,6 +57,12 @@ void writeAudio(const config_t *config, const token_bag_t *token_bag,
   ffmpeg_cmd = (char *) fmalloc(cmd_bufsz + 1);
   snprintf(ffmpeg_cmd, cmd_bufsz, cmd_fmt, config->bitrate, audio_filename);
 
+  if (!is_valid_filename(audio_filename)) {
+    fprintf(stderr, "Invalid audio file name\n");
+    exit(1);
+  }
+
+  // TODO consider changing to `run_and_capture`, in `util.h`
   pipeout = popen(ffmpeg_cmd, "w");
   if (pipeout == NULL) {
     fprintf(stderr, "Could not open audio file\n");

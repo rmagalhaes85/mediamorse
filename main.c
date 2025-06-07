@@ -8,7 +8,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <unistd.h>
 
 #include "config.h"
 #include "util.h"
@@ -17,26 +16,20 @@
 #include "audio.h"
 #include "video.h"
 
-const char *createTempAudioFile() {
-  static char template[] = "audioXXXXXX";
-  int f = mkstemp(template);
-  if (f == -1) {
-    fprintf(stderr, "Could not create the temporary audio file\n");
+char *createTempFile(const char *ext) {
+  char *basename = tmpnam(NULL);
+  if (basename == NULL) {
+    fprintf(stderr, "Could not generate a temporary file\n");
     exit(1);
   }
-  close(f);
-  return template;
-}
-
-const char *createTempVideoFile() {
-  static char template[] = "videoXXXXXX";
-  int f = mkstemp(template);
-  if (f == -1) {
-    fprintf(stderr, "Could not create the temporary video file\n");
-    exit(1);
+  if (ext == NULL || strlen(ext) == 0) {
+    // condition above don't cover `ext`s consisting of spaces only
+    return strdup(basename);
   }
-  close(f);
-  return template;
+  // allocates a buffer with enough space to store the file extension
+  char *tempname = (char *) malloc(strlen(basename) + strlen(ext) + 1);
+  sprintf(tempname, "%s.%s", basename, ext);
+  return tempname;
 }
 
 int main(int argc, char *argv[]) {
@@ -45,19 +38,29 @@ int main(int argc, char *argv[]) {
   config_t *config = parseConfig(argc, argv);
   token_bag_t *token_bag = parseInput(config);
 
-  audio_filename = createTempAudioFile();
-  video_filename = createTempVideoFile();
+  audio_filename = createTempFile("mp3");
+  video_filename = createTempFile("mp4");
 
   writeAudio(config, token_bag, audio_filename);
   writeVideo(config, token_bag, video_filename);
 
   free(config);
 
-  // remote temporary files unless the current config says not to do so
+  // remove temporary files unless the current config says not to do so
 
   // validate/sanitize output file name, for security reasons
   // run the final ffmpeg command using system()
   //
   // #ffmpeg -y -i /tmp/morse.mp4 -i /tmp/morse.mp3 -c:a copy -c:v copy /tmp/tnc.mp4
+  char *const ffmpeg_args[] = { "ffmpeg", "-v", "0", "-y",
+    "-i", (char * const) audio_filename,
+    "-i", (char * const) video_filename,
+    "-c:a", "copy", "-c:v", "copy", config->output_filename,
+    NULL};
+  run_command("ffmpeg", ffmpeg_args);
+
+  remove(audio_filename);
+  remove(video_filename);
+
   return 0;
 }
