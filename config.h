@@ -7,9 +7,10 @@
 // Configuration
 //
 typedef struct config {
-  // input
+  // input/output
   char *input_filename;
   bool read_stdin;
+  char *output_filename;
   // morse
   int normal_wpm;
   int farnsworth_wpm;

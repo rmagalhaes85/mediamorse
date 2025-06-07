@@ -146,7 +146,7 @@ void writeVideo(const config_t *config, const token_bag_t *token_bag,
   FILE *pipeout = NULL;
   const char cmd_fmt[] = "ffmpeg -y -f rawvideo -pixel_format rgb24 "
         "-video_size 640x480 -r %d "
-        "-i pipe: -c:v libx264 -pix_fmt yuv420p %s";
+        "-i pipe: -c:v libx264 -pix_fmt yuv420p -f mp4 %s";
   int cmd_bufsz;
   char *ffmpeg_cmd;
   // tokens/glyphs

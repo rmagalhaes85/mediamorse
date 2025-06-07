@@ -43,7 +43,7 @@ void writeSilence(float complex *osc, FILE *pipeout, const config_t *config,
 void writeAudio(const config_t *config, const token_bag_t *token_bag,
     const char *audio_filename) {
   FILE *pipeout = NULL;
-  const char cmd_fmt[] = "ffmpeg -y -f f32le -ar %d -ac 1 -i - %s";
+  const char cmd_fmt[] = "ffmpeg -y -f f32le -ar %d -ac 1 -i - -f mp3 %s";
   int cmd_bufsz;
   char *ffmpeg_cmd;
   // audio

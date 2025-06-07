@@ -4,9 +4,11 @@
 #define _POSIX_C_SOURCE 200809L
 #endif
 
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 #include "config.h"
 #include "util.h"
@@ -16,11 +18,25 @@
 #include "video.h"
 
 const char *createTempAudioFile() {
-  return "/tmp/morse.mp3";
+  static char template[] = "audioXXXXXX";
+  int f = mkstemp(template);
+  if (f == -1) {
+    fprintf(stderr, "Could not create the temporary audio file\n");
+    exit(1);
+  }
+  close(f);
+  return template;
 }
 
 const char *createTempVideoFile() {
-  return "/tmp/morse.mp4";
+  static char template[] = "videoXXXXXX";
+  int f = mkstemp(template);
+  if (f == -1) {
+    fprintf(stderr, "Could not create the temporary video file\n");
+    exit(1);
+  }
+  close(f);
+  return template;
 }
 
 int main(int argc, char *argv[]) {
@@ -33,10 +49,15 @@ int main(int argc, char *argv[]) {
   video_filename = createTempVideoFile();
 
   writeAudio(config, token_bag, audio_filename);
-  //printTokens(token_bag);
   writeVideo(config, token_bag, video_filename);
 
   free(config);
 
+  // remote temporary files unless the current config says not to do so
+
+  // validate/sanitize output file name, for security reasons
+  // run the final ffmpeg command using system()
+  //
+  // #ffmpeg -y -i /tmp/morse.mp4 -i /tmp/morse.mp3 -c:a copy -c:v copy /tmp/tnc.mp4
   return 0;
 }
