@@ -15,11 +15,13 @@ config_t *parseConfig(int argc, char *argv[]) {
   bool last_arg = false;
   bool farnsworth_informed = false;
   bool inputfile_was_informed = false;
-  int bitrate = 44100;
-  int freq = 500;
-  int video_width = 640;
-  int video_height = 480;
-  int framerate = 25;
+
+  config->bitrate = 44100;
+  config->freq = 500;
+
+  config->video_width = 640;
+  config->video_height = 480;
+  config->framerate = 25;
 
   for (int i = 1; i < argc; ++i) {
     last_arg = i == argc - 1;
@@ -46,7 +48,7 @@ config_t *parseConfig(int argc, char *argv[]) {
     } else if (!last_arg && (!strcmp("-f", argv[i]) || !strcmp("--frequency", argv[i]))) {
       errno = 0;
       char *end;
-      freq = strtol(argv[++i], &end, 10);
+      config->freq = strtol(argv[++i], &end, 10);
       if (errno != 0 || argv[i] == end) {
         fprintf(stderr, "Invalid frequency\n");
         exit(1);
@@ -56,7 +58,7 @@ config_t *parseConfig(int argc, char *argv[]) {
     } else if (!last_arg && (!strcmp("-ar", argv[i]) || !strcmp("--bitrate", argv[i]))) {
       errno = 0;
       char *end;
-      bitrate = strtol(argv[++i], &end, 10);
+      config->bitrate = strtol(argv[++i], &end, 10);
       if (errno != 0 || argv[i] == end) {
         fprintf(stderr, "Invalid bitrate\n");
         exit(1);
@@ -64,7 +66,7 @@ config_t *parseConfig(int argc, char *argv[]) {
     } else if (!last_arg && (!strcmp("-r", argv[i]) || !strcmp("--framerate", argv[i]))) {
       errno = 0;
       char *end;
-      framerate = strtol(argv[++i], &end, 10);
+      config->framerate = strtol(argv[++i], &end, 10);
       if (errno != 0 || argv[i] == end) {
         fprintf(stderr, "Invalid framerate\n");
         exit(1);
@@ -80,7 +82,7 @@ config_t *parseConfig(int argc, char *argv[]) {
     } else if (!last_arg && (!strcmp("-vw", argv[i]) || !strcmp("--video-width", argv[i]))) {
       errno = 0;
       char *end;
-      video_width = strtol(argv[++i], &end, 10);
+      config->video_width = strtol(argv[++i], &end, 10);
       if (errno != 0 || argv[i] == end) {
         fprintf(stderr, "Invalid video width\n");
         exit(1);
@@ -88,7 +90,7 @@ config_t *parseConfig(int argc, char *argv[]) {
     } else if (!last_arg && (!strcmp("-vh", argv[i]) || !strcmp("--video-height", argv[i]))) {
       errno = 0;
       char *end;
-      video_height = strtol(argv[++i], &end, 10);
+      config->video_height = strtol(argv[++i], &end, 10);
       if (errno != 0 || argv[i] == end) {
         fprintf(stderr, "Invalid video height\n");
         exit(1);
@@ -141,15 +143,6 @@ config_t *parseConfig(int argc, char *argv[]) {
   config->farnsworth_unit_ms = 60000. / (50 * config->farnsworth_wpm);
 
   config->read_stdin = !inputfile_was_informed;
-
-  config->bitrate = bitrate;
-  config->freq = freq;
-
-  config->video_width = video_width;
-  config->video_height = video_height;
-  config->framerate = framerate;
-
-  printConfig(config);
 
   return config;
 }
