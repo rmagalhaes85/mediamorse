@@ -24,6 +24,7 @@ config_t *parseConfig(int argc, char *argv[]) {
   config->framerate = 25;
 
   config->morse_mode = MODE_SYNC;
+  config->keep_tmp_files = false;
 
   config->output_filename = NULL;
 
@@ -115,6 +116,8 @@ config_t *parseConfig(int argc, char *argv[]) {
       config->hlcolor = argv[++i];
     } else if (!strcmp("-t", argv[i]) || !strcmp("--showtitle", argv[i])) {
       config->showtitle = true;
+    } else if (!strcmp("-kt", argv[i]) || !strcmp("--keep-temp-files", argv[i])) {
+      config->keep_tmp_files = true;
     } else if (!last_arg && (!strcmp("-td", argv[i]) || !strcmp("--titleduration", argv[i]))) {
       errno = 0;
       char *end;

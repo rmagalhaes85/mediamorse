@@ -59,8 +59,13 @@ int main(int argc, char *argv[]) {
     NULL};
   run_command("ffmpeg", ffmpeg_args);
 
-  remove(audio_filename);
-  remove(video_filename);
+  if (config->keep_tmp_files) {
+    fprintf(stderr, "Keeping temporary audio file: %s\n", audio_filename);
+    fprintf(stderr, "Keeping temporary video file: %s\n", video_filename);
+  } else {
+    remove(audio_filename);
+    remove(video_filename);
+  }
 
   return 0;
 }

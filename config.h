@@ -15,6 +15,7 @@ typedef struct config {
   char *input_filename;
   bool read_stdin;
   char *output_filename;
+  bool keep_tmp_files;
   // morse
   int normal_wpm;
   int farnsworth_wpm;
