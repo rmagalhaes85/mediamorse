@@ -3,6 +3,10 @@
 
 #include <stdbool.h>
 
+typedef enum {
+  MODE_SYNC,
+  MODE_GUESS,
+} morse_mode_t;
 
 // Configuration
 //
@@ -30,6 +34,7 @@ typedef struct config {
   int video_width;
   int video_height;
   int framerate;
+  morse_mode_t morse_mode;
 } config_t;
 
 config_t *parseConfig(int argc, char *argv[]);

@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <cairo.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -175,6 +176,7 @@ void writeVideo(const config_t *config, const token_bag_t *token_bag,
 
   while (token != NULL) {
     glyph = token->glyph_head;
+    const char *stored_glyph_text = NULL;
 
     while (glyph != NULL) {
       const char *morse = glyph->morse;
@@ -189,8 +191,11 @@ void writeVideo(const config_t *config, const token_bag_t *token_bag,
       }
       //duration_units += morse_len - 1; // spacers between each dih and dah
 
-      writeGlyphText(glyph->text, pipeout, config,
+      writeGlyphText((config->morse_mode == MODE_SYNC) ? glyph->text : " ", pipeout, config,
           duration_units * config->normal_unit_ms, &frames_mismatch);
+      if (config->morse_mode == MODE_GUESS) {
+        stored_glyph_text = glyph->text;
+      }
 
       glyph = glyph->next;
 
@@ -204,8 +209,17 @@ void writeVideo(const config_t *config, const token_bag_t *token_bag,
         farns_units = 3;
       }
 
-      writeGlyphText(" ", pipeout, config, config->farnsworth_unit_ms * farns_units,
-          &frames_mismatch);
+
+      if (config->morse_mode == MODE_SYNC) {
+        writeGlyphText(" ", pipeout, config, config->farnsworth_unit_ms * farns_units,
+            &frames_mismatch);
+      } else {
+        int glyph_duration_ms = config->normal_unit_ms;
+        int blank_duration_ms = config->farnsworth_unit_ms * farns_units - glyph_duration_ms;
+        assert(stored_glyph_text != NULL);
+        writeGlyphText(stored_glyph_text, pipeout, config, glyph_duration_ms, &frames_mismatch);
+        writeGlyphText(" ", pipeout, config, blank_duration_ms, &frames_mismatch);
+      }
     }
 
     token = token->next;

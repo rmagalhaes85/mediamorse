@@ -23,6 +23,8 @@ config_t *parseConfig(int argc, char *argv[]) {
   config->video_height = 480;
   config->framerate = 25;
 
+  config->morse_mode = MODE_SYNC;
+
   config->output_filename = NULL;
 
   for (int i = 1; i < argc; ++i) {
@@ -119,6 +121,16 @@ config_t *parseConfig(int argc, char *argv[]) {
       config->title_duration_ms = strtol(argv[++i], &end, 10);
       if (errno != 0 || argv[i] == end) {
         fprintf(stderr, "Invalid title duration\n");
+        exit(1);
+      }
+    } else if (!last_arg && (!strcmp("-m", argv[i]) || !strcmp("--mode", argv[i]))) {
+      const char *mode_str = argv[++i];
+      if (strcasecmp(mode_str, "sync") == 0) {
+        config->morse_mode = MODE_SYNC;
+      } else if (strcasecmp(mode_str, "guess") == 0) {
+        config->morse_mode = MODE_GUESS;
+      } else {
+        fprintf(stderr, "Invalid mode: %s\n", mode_str);
         exit(1);
       }
     }
