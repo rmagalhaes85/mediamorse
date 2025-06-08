@@ -46,8 +46,6 @@ int main(int argc, char *argv[]) {
 
   free(config);
 
-  // remove temporary files unless the current config says not to do so
-
   // validate/sanitize output file name, for security reasons
   // run the final ffmpeg command using system()
   //
