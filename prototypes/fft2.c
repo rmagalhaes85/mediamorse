@@ -1,5 +1,3 @@
-// compile with: gcc -g minfft.c noise5.c -onoise5 -lm
-
 #include <complex.h>
 
 #include "minfft.h"

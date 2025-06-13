@@ -161,6 +161,8 @@ main(void)
   print_vector(" FFT", v2, N);
   ifft(v2, N, scratch);
   print_vector("iFFT", v2, N);
+  fft(v2, N, scratch);
+  print_vector("rFFT", v2, N);
 
   exit(EXIT_SUCCESS);
 }

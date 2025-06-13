@@ -139,10 +139,27 @@ void writeAudio(complex *samples, int nb_samples, int bitrate) {
   }
 
   for (int i = 0; i < nb_samples; i++) {
-    writeSound(samples[i].Re, pipeout);
+    writeSound(samples[i].Re * 300., pipeout);
   }
 
   fclose(pipeout);
+}
+
+void writeFile(const complex *samples, int num_samples, const char *filename) {
+  FILE *f = fopen(filename, "w");
+  for (int i = 0; i < num_samples; ++i) {
+    fprintf(f, "%10.5f,%10.5f\n", samples[i].Re, samples[i].Im);
+  }
+  fclose(f);
+}
+
+void fill_conjugates(complex *samples, int num_samples) {
+  int i = 1, j = num_samples - 1;
+  int np = (num_samples - 1) / 2;
+  while (i < np) {
+    samples[j--] = (complex) { .Re = samples[i].Re, .Im = -samples[i].Im };
+    i++;
+  }
 }
 
 int
@@ -150,8 +167,8 @@ main(void)
 {
   //complex v[N], v1[N], v2[N], scratch[N];
 
-  int num_samples = 11025;
-  int sample_rate = 11025;
+  int num_samples = 22050;
+  int sample_rate = 22050;
   int min_freq = 400;
   int max_freq = 600;
   complex *samples, *temp;
@@ -208,14 +225,31 @@ f = [0, 1, ..., (n-1)/2, -(n-1)/2, ..., -1] / (d*n)   if n is odd
 
   for (int i = 0; i < num_samples; i++) {
     if (samples[i].Re < 1.) continue;
-    float r = (float) rand() / (float) RAND_MAX;
+    /*float r = (float) rand() / (float) RAND_MAX;
+    r *= 2 * PI;*/
+    float r = PI * .25;
     samples[i].Re = cos(r);
     samples[i].Im = sin(r);
   }
 
+  fill_conjugates(samples, num_samples);
+
+  writeFile(samples, num_samples, "/tmp/noise5-input.csv");
+
   ifft(samples, num_samples, temp);
 
+  for (int i = 0; i < num_samples; ++i) {
+    samples[i].Re /= num_samples;
+    samples[i].Im /= num_samples;
+  }
+
+  writeFile(samples, num_samples, "/tmp/noise5-output.csv");
+
   writeAudio(samples, num_samples, sample_rate);
+
+  fft(samples, num_samples, temp);
+
+  writeFile(samples, num_samples, "/tmp/noise5-reinput.csv");
 
   exit(EXIT_SUCCESS);
 }
