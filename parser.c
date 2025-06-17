@@ -120,15 +120,15 @@ static token_t *tokenCreate(const char *text) {
   return token;
 }
 
-static void glyphFillChar(glyph_t *glyph, const char c) {
-  // here we expect that the buffer will be allocated by us
-  assert(glyph->text == NULL);
-  size_t bufsz = sizeof(char) * 2;
-  glyph->text = (char *) fmalloc(bufsz);
-  memset(glyph->text, '\0', bufsz);
-  int written = snprintf(glyph->text, bufsz, "%c", c);
+static void glyphFillText(glyph_t *glyph, const char *text) {
+  glyph->text = strdup(text);
   glyph->morse = getMorse(glyph->text);
-  assert(written == 1);
+}
+
+static void glyphFillChar(glyph_t *glyph, const char c) {
+  char buffer[2];
+  sprintf(buffer, "%c", c);
+  glyphFillText(glyph, buffer);
 }
 
 static glyph_t *glyphsCreate(const char *text, token_type_t type) {
@@ -148,7 +148,7 @@ static glyph_t *glyphsCreate(const char *text, token_type_t type) {
     assert(len > 1 && text[0] == '/');
     // the initial '/' in prosign tokens are ignored when building the glyph:
     c++;
-    head->text = strdup(c);
+    glyphFillText(head, c);
     // TODO: compute glyph durations
     return head;
   } else {
