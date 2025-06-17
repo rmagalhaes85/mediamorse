@@ -32,12 +32,40 @@ def write_file(samples, filename):
         for s in samples:
             f.write("{:10.5f},{:10.5f}\n".format(s.real, s.imag))
 
+def get_random_from_file(filename):
+    """
+    Reads numbers from a file and stores them in a NumPy array.
+
+    Args:
+    filename (str): The path to the file containing the numbers.
+
+    Returns:
+    numpy.ndarray: A NumPy array containing the numbers from the file.
+                   Returns an empty array if the file is empty or not found.
+    """
+    try:
+        with open(filename, 'r') as file:
+            lines = file.readlines()
+            numbers = []
+            for line in lines:
+                # Split the line by space and convert each number to float
+                numbers.extend([float(num) for num in line.split()])
+            return np.array(numbers)
+    except FileNotFoundError:
+        print(f"Error: File '{filename}' not found.")
+        return np.array([])
+    except ValueError:
+        print(f"Error: Invalid number format in file '{filename}'.")
+        return np.array([])
+
 # src: https://stackoverflow.com/questions/33933842/how-to-generate-noise-in-frequency-range-with-numpy
 def fftnoise(f):
     f = np.array(f, dtype='complex')
     Np = (len(f) - 1) // 2
     #phases = np.random.rand(Np) * 2 * np.pi
-    phases = np.repeat(np.array([0.25 * np.pi]), Np)
+    #phases = np.repeat(np.array([0.25 * np.pi]), Np)
+    randoms = get_random_from_file('random_numbers.txt')
+    phases = randoms * 2 * np.pi
     phases = np.cos(phases) + 1j * np.sin(phases)
     f[1:Np+1] *= phases
     f[-1:-1-Np:-1] = np.conj(f[1:Np+1])

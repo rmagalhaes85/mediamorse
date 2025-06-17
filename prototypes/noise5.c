@@ -5,6 +5,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 
 //#define q	3		/* for 2^3 points */
@@ -139,7 +141,7 @@ void writeAudio(complex *samples, int nb_samples, int bitrate) {
   }
 
   for (int i = 0; i < nb_samples; i++) {
-    writeSound(samples[i].Re * 300., pipeout);
+    writeSound(samples[i].Re * 500., pipeout);
   }
 
   fclose(pipeout);
@@ -161,6 +163,65 @@ void fill_conjugates(complex *samples, int num_samples) {
     i++;
   }
 }
+
+int getRandomNumber(int min, int max) {
+  int fd = open("/dev/urandom", O_RDONLY);
+  if (fd == -1) {
+    perror("Failed to open /dev/urandom");
+    exit(EXIT_FAILURE);
+  }
+
+  int random_number;
+  ssize_t bytes_read = read(fd, &random_number, sizeof(random_number));
+  if (bytes_read != sizeof(random_number)) {
+    perror("Failed to read from /dev/urandom");
+    close(fd);
+    exit(EXIT_FAILURE);
+  }
+  close(fd);
+
+  // Scale to the desired range
+  return (random_number % (max - min + 1)) + min;
+}
+
+double* read_doubles_from_file(const char* filename, size_t* out_count) {
+    FILE* file = fopen(filename, "r");
+    if (!file) {
+        perror("Error opening file");
+        return NULL;
+    }
+
+    size_t capacity = 10;
+    size_t count = 0;
+    double* numbers = malloc(capacity * sizeof(double));
+    if (!numbers) {
+        perror("Memory allocation failed");
+        fclose(file);
+        return NULL;
+    }
+
+    double value;
+    while (fscanf(file, "%lf", &value) == 1) {
+        if (count >= capacity) {
+            capacity *= 2;
+            double* temp = realloc(numbers, capacity * sizeof(double));
+            if (!temp) {
+                perror("Memory reallocation failed");
+                free(numbers);
+                fclose(file);
+                return NULL;
+            }
+            numbers = temp;
+        }
+        numbers[count++] = value;
+    }
+
+    fclose(file);
+    *out_count = count;
+    return numbers;
+}
+
+
 
 int
 main(void)
@@ -187,7 +248,7 @@ f = [0, 1, ..., (n-1)/2, -(n-1)/2, ..., -1] / (d*n)   if n is odd
     // num_samples is even
     factor = -num_samples / 2;
     while (i <= num_samples / 2 - 1) {
-      real_part = num_samples / 2 + factor;
+      real_part = num_samples / 2. + factor;
       real_part /= ((float)num_samples / sample_rate);
       //samples[i].Re = real_part;
       samples[i].Re = (real_part >= min_freq && real_part <= max_freq) ? 1. : 0.;
@@ -195,7 +256,7 @@ f = [0, 1, ..., (n-1)/2, -(n-1)/2, ..., -1] / (d*n)   if n is odd
       i++;
     }
     while (i < num_samples) {
-      real_part = -num_samples / 2 + factor;
+      real_part = -num_samples / 2. + factor;
       real_part /= ((float)num_samples / sample_rate);
       //samples[i].Re = real_part;
       samples[i].Re = (real_part >= min_freq && real_part <= max_freq) ? 1. : 0.;
@@ -206,7 +267,7 @@ f = [0, 1, ..., (n-1)/2, -(n-1)/2, ..., -1] / (d*n)   if n is odd
     // num_samples is odd
     factor = -(num_samples - 1) / 2;
     while (i <= (num_samples - 1) / 2) {
-      real_part = (num_samples - 1) / 2 + factor;
+      real_part = (num_samples - 1) / 2. + factor;
       real_part /= ((float)num_samples / sample_rate);
       //samples[i].Re = real_part;
       samples[i].Re = (real_part >= min_freq && real_part <= max_freq) ? 1. : 0.;
@@ -214,7 +275,7 @@ f = [0, 1, ..., (n-1)/2, -(n-1)/2, ..., -1] / (d*n)   if n is odd
       i++;
     }
     while (i < num_samples) {
-      real_part = -(num_samples - 1) / 2 + factor - 1;
+      real_part = -(num_samples - 1) / 2. + factor - 1;
       real_part /= ((float)num_samples / sample_rate);
       //samples[i].Re = real_part;
       samples[i].Re = (real_part >= min_freq && real_part <= max_freq) ? 1. : 0.;
@@ -223,11 +284,22 @@ f = [0, 1, ..., (n-1)/2, -(n-1)/2, ..., -1] / (d*n)   if n is odd
     }
   }
 
-  for (int i = 0; i < num_samples; i++) {
+  size_t randoms_count = 0;
+  double *randoms = read_doubles_from_file("random_numbers.txt", &randoms_count);
+  if ((randoms_count * 2) < (num_samples - 2)) {
+    fprintf(stderr,
+        "There are %d nums in the random numbers file,"
+        " not enough random numbers in the file\n", randoms_count);
+    exit(1);
+  }
+
+  for (int i = 1; i <= ((num_samples - 1) / 2) + 1; i++) {
     if (samples[i].Re < 1.) continue;
-    /*float r = (float) rand() / (float) RAND_MAX;
-    r *= 2 * PI;*/
-    float r = PI * .25;
+    //float r = abs(getRandomNumber(0, 10000)) / 10000.;
+    //float r = (float) rand() / (float) RAND_MAX;
+    double r = randoms[i - 1];
+    r *= 2 * PI;
+    //float r = PI * .25;
     samples[i].Re = cos(r);
     samples[i].Im = sin(r);
   }
