@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "morse.h"
 
@@ -10,36 +11,37 @@ static void getMorseChar(const int c, char *out_buffer,
     size_t out_buffer_size) {
 
   assert(c);
+  int upper_c = isalpha(c) ? toupper(c) : c;
 
-#define MORSE_MAP(s, r) case s: case s - 0x20: \
+#define MORSE_MAP(s, r) case s: \
   snprintf(out_buffer, out_buffer_size, "%s", #r); return
-  switch (c) {
-    MORSE_MAP('a', .-);
-    MORSE_MAP('b', -...);
-    MORSE_MAP('c', -.-.);
-    MORSE_MAP('d', -..);
-    MORSE_MAP('e', .);
-    MORSE_MAP('f', ..-.);
-    MORSE_MAP('g', --.);
-    MORSE_MAP('h', ....);
-    MORSE_MAP('i', ..);
-    MORSE_MAP('j', .---);
-    MORSE_MAP('k', -.-);
-    MORSE_MAP('l', .-..);
-    MORSE_MAP('m', --);
-    MORSE_MAP('n', -.);
-    MORSE_MAP('o', ---);
-    MORSE_MAP('p', .--.);
-    MORSE_MAP('q', --.-);
-    MORSE_MAP('r', .-.);
-    MORSE_MAP('s', ...);
-    MORSE_MAP('t', -);
-    MORSE_MAP('u', ..-);
-    MORSE_MAP('v', ...-);
-    MORSE_MAP('w', .--);
-    MORSE_MAP('x', -..-);
-    MORSE_MAP('y', -.--);
-    MORSE_MAP('z', --..);
+  switch (upper_c) {
+    MORSE_MAP('A', .-);
+    MORSE_MAP('B', -...);
+    MORSE_MAP('C', -.-.);
+    MORSE_MAP('D', -..);
+    MORSE_MAP('E', .);
+    MORSE_MAP('F', ..-.);
+    MORSE_MAP('G', --.);
+    MORSE_MAP('H', ....);
+    MORSE_MAP('I', ..);
+    MORSE_MAP('J', .---);
+    MORSE_MAP('K', -.-);
+    MORSE_MAP('L', .-..);
+    MORSE_MAP('M', --);
+    MORSE_MAP('N', -.);
+    MORSE_MAP('O', ---);
+    MORSE_MAP('P', .--.);
+    MORSE_MAP('Q', --.-);
+    MORSE_MAP('R', .-.);
+    MORSE_MAP('S', ...);
+    MORSE_MAP('T', -);
+    MORSE_MAP('U', ..-);
+    MORSE_MAP('V', ...-);
+    MORSE_MAP('W', .--);
+    MORSE_MAP('X', -..-);
+    MORSE_MAP('Y', -.--);
+    MORSE_MAP('Z', --..);
     MORSE_MAP('0', -----);
     MORSE_MAP('1', .----);
     MORSE_MAP('2', ..---);
