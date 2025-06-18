@@ -57,7 +57,7 @@ static void getFrame(const config_t *config, const char *glyph_text,
 
   // Draw white letter "A" in the center
   cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-  cairo_set_font_size(cr, config->video_height * 0.75); // Scale font to 75% of height
+  cairo_set_font_size(cr, config->video_height * 0.5); // Scale font to 50% of height
 
   cairo_text_extents_t extents;
   cairo_text_extents(cr, glyph_text, &extents);
@@ -68,6 +68,23 @@ static void getFrame(const config_t *config, const char *glyph_text,
   cairo_move_to(cr, x, y);
   cairo_set_source_rgb(cr, 1, 1, 1); // White
   cairo_show_text(cr, glyph_text);
+
+  cairo_font_extents_t font_extents;
+  cairo_font_extents(cr, &font_extents);
+
+  // Draw overscore bar if text has more than one character
+  if (strlen(glyph_text) > 1) {
+    // Position the bar slightly above the text
+    double bar_x = x + extents.x_bearing;
+    double bar_y = y - font_extents.ascent * 0.9;
+    double bar_width = extents.width + extents.x_bearing;
+    double bar_thickness = extents.height * 0.05; // 5% of text height
+
+    cairo_set_line_width(cr, bar_thickness);
+    cairo_move_to(cr, bar_x, bar_y);
+    cairo_line_to(cr, x + bar_width, bar_y);
+    cairo_stroke(cr);
+  }
 
   cairo_surface_flush(surface);
 
