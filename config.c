@@ -175,6 +175,14 @@ config_t *parseConfig(int argc, char *argv[]) {
     exit(1);
   }
 
+  if (config->normal_unit_ms < (1000.0 / config->framerate)) {
+    fprintf(stderr, "The Morse code unit duration (%.2f ms) "
+      "cannot be shorter than a video frame duration (%.2f ms). "
+      "Please use a higher framerate or a lower wpm speed.\n",
+      config->normal_unit_ms, 1000.0 / config->framerate);
+    exit(1);
+  }
+
   return config;
 }
 
