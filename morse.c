@@ -50,7 +50,23 @@ static void getMorseChar(const int c, char *out_buffer,
     MORSE_MAP('7', --...);
     MORSE_MAP('8', ---..);
     MORSE_MAP('9', ----.);
-    // TODO include special symbols
+    MORSE_MAP('/', -..-.);
+    MORSE_MAP('?', ..--..);
+    MORSE_MAP('!', -.-.--);
+    MORSE_MAP('.', .-.-.-);
+    MORSE_MAP(',', --..--);
+    MORSE_MAP(':', ---...);
+    MORSE_MAP(';', -.-.-.);
+    MORSE_MAP('=', -...-);
+    MORSE_MAP('+', .-.-.);
+    MORSE_MAP('-', -....-);
+    MORSE_MAP('_', ..--.-);
+    MORSE_MAP('"', .-..-.);
+    MORSE_MAP('@', .--.-.);
+    MORSE_MAP('&', .-...);
+    MORSE_MAP('(', -.--.);
+    MORSE_MAP(')', -.--.-);
+    MORSE_MAP('$', ...-..-);
     MORSE_MAP(' ', S);
     default:
       return getMorseChar(' ', out_buffer, out_buffer_size);
