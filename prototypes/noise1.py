@@ -62,18 +62,18 @@ def get_random_from_file(filename):
 def fftnoise(f):
     f = np.array(f, dtype='complex')
     Np = (len(f) - 1) // 2
-    #phases = np.random.rand(Np) * 2 * np.pi
+    phases = np.random.rand(Np) * 2 * np.pi
     #phases = np.repeat(np.array([0.25 * np.pi]), Np)
-    randoms = get_random_from_file('random_numbers.txt')
-    phases = randoms * 2 * np.pi
+    #randoms = get_random_from_file('random_numbers.txt')
+    #phases = randoms * 2 * np.pi
     phases = np.cos(phases) + 1j * np.sin(phases)
     f[1:Np+1] *= phases
     f[-1:-1-Np:-1] = np.conj(f[1:Np+1])
-    write_file(f, "/tmp/noise1-input.csv")
+    #write_file(f, "/tmp/noise1-input.csv")
     o = np.fft.ifft(f)
-    write_file(o, "/tmp/noise1-output.csv")
+    #write_file(o, "/tmp/noise1-output.csv")
     r = np.fft.fft(o)
-    write_file(r, "/tmp/noise1-reinput.csv")
+    #write_file(r, "/tmp/noise1-reinput.csv")
     return o.real
 
 # src: https://stackoverflow.com/questions/33933842/how-to-generate-noise-in-frequency-range-with-numpy
