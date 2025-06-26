@@ -108,7 +108,7 @@ def band_limited_noise(min_freq, max_freq, samples=1024, samplerate=1):
     f[idx] = 1
     return fftnoise(f)
 
-def generate_noise_file(duration, min_freq, max_freq):
+def generate_noise_samples(duration, min_freq, max_freq):
     noise = band_limited_noise(
         min_freq, max_freq, int(duration * SAMPLE_RATE), SAMPLE_RATE
     )
@@ -117,7 +117,7 @@ def generate_noise_file(duration, min_freq, max_freq):
 min_freq = center_frequency - bandwidth // 2
 max_freq = min_freq + bandwidth
 
-noise_samples = generate_noise_file(media_duration, min_freq, max_freq)
+noise_samples = generate_noise_samples(media_duration, min_freq, max_freq)
 # noise_samples is a numpy array of samples
 
 # Write noise_samples to a temporary mp3 file using ffmpeg
