@@ -11,6 +11,8 @@ import struct
 import subprocess
 import tempfile
 
+SAMPLE_RATE = 11025
+
 if len(sys.argv) != 5:
     print(f"Usage: {sys.argv[0]} <media_file> <center_frequency> <bandwidth> <level>")
     exit(1)
@@ -104,7 +106,9 @@ def band_limited_noise(min_freq, max_freq, samples=1024, samplerate=1):
     return fftnoise(f)
 
 def generate_noise_file(duration, min_freq, max_freq):
-    noise = band_limited_noise(min_freq, max_freq, int(duration * 44100), 44100)
+    noise = band_limited_noise(
+        min_freq, max_freq, int(duration * SAMPLE_RATE), SAMPLE_RATE
+    )
     return noise
 
 min_freq = center_frequency - bandwidth // 2
@@ -119,7 +123,7 @@ with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as tmp_mp3:
 
 ffmpeg_cmd = [
     'ffmpeg', '-y',
-    '-f', 'f32le', '-ar', '44100', '-ac', '1', '-i', '-',
+    '-f', 'f32le', '-ar', str(SAMPLE_RATE), '-ac', '1', '-i', '-',
     '-f', 'mp3', noise_mp3_filename
 ]
 
