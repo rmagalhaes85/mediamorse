@@ -12,6 +12,9 @@ import subprocess
 import tempfile
 
 SAMPLE_RATE = 11025
+AMIX_EXPRESSION = (
+    'amix=inputs=2:duration=first:dropout_transition=2:normalize=0'
+)
 
 if len(sys.argv) != 5:
     print(f"Usage: {sys.argv[0]} <media_file> <center_frequency> <bandwidth> <level>")
@@ -152,7 +155,7 @@ if is_audio:
         'ffmpeg', '-y',
         '-i', media_file,
         '-i', noise_mp3_filename,
-        '-filter_complex', 'amix=inputs=2:duration=first:dropout_transition=2',
+        '-filter_complex', AMIX_EXPRESSION,
         '-c:a', 'mp3',
         merged_filename
     ]
@@ -162,7 +165,7 @@ else:
         'ffmpeg', '-y',
         '-i', media_file,
         '-i', noise_mp3_filename,
-        '-filter_complex', '[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2[aout]',
+        '-filter_complex', f'[0:a][1:a]{AMIX_EXPRESSION}[aout]',
         '-map', '0:v?',
         '-map', '[aout]',
         '-c:v', 'copy',
