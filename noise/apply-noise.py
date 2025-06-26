@@ -112,6 +112,7 @@ def generate_noise_samples(duration, min_freq, max_freq):
     noise = band_limited_noise(
         min_freq, max_freq, int(duration * SAMPLE_RATE), SAMPLE_RATE
     )
+    noise /= max(noise)
     return noise
 
 min_freq = center_frequency - bandwidth // 2
@@ -132,7 +133,6 @@ ffmpeg_cmd = [
 
 process = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE)
 try:
-    noise_samples *= 1000
     for s in noise_samples:
         process.stdin.write(struct.pack('f', s))
     process.communicate()
